@@ -14,12 +14,15 @@
 #include "mycheck.h"
 #include "myini.h"
 #include "md5.h"
+#include "V3/v3sub.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 static BYTE *bin_8021x = NULL;
 static DWORD size_8021x;
+static BYTE *bin_w32n55 = NULL;
+static DWORD size_w32n55;
 
 #ifdef WORDS_BIGENDIAN
 WORD ltobs(WORD x) {
@@ -145,10 +148,15 @@ void check_free() {
 		free(bin_8021x);
 		bin_8021x = NULL;
 	}
+	if (bin_w32n55) {
+		free(bin_w32n55);
+		bin_w32n55 = NULL;
+	}
 }
 
 int check_init(const char *dataFile) {
 	char name[0x100];
+	BYTE buf[0x1000];
 	char *p;
 	check_free();
 	strcpy(name, dataFile);
@@ -158,6 +166,22 @@ int check_init(const char *dataFile) {
 	if ((bin_8021x=ReadCode(name, &size_8021x)) == NULL
 		&& (bin_8021x=ReadCode2(dataFile, &size_8021x)) == NULL)
 		return -1;
+	strcpy(p, "W32N55.dll");
+	if ((bin_w32n55=ReadCode(name, &size_w32n55)) == NULL
+		&& (bin_w32n55=ReadCode2(dataFile, &size_w32n55)) == NULL)
+		return -2;
+	strcpy(p, "SuConfig.dat");
+	if (decodeConfig(name, buf, 2048) && getString(buf, "PUBLIC", "Title", "", name, 0x100u))
+	{
+        memcpy(bin_8021x + size_8021x, name, strlen(name));
+        size_8021x += strlen(name);
+        memcpy(bin_w32n55 + size_w32n55, name, strlen(name));
+        size_w32n55 += strlen(name);
+	}
+	else
+	{
+		return 1;
+	}
 	return 0;
 }
 
@@ -175,6 +199,15 @@ void V2_check(const BYTE *seed, char *final_str) {
 	free(b8021x);
 	md5Dig = ComputeHash(table, 144);
 	hex_to_str(md5Dig, final_str, 16, 1);
+}
+
+void V3_check(const char *seed, char *final_str) {
+	V3_sub_func funcmap[] = {V3_sub0, V3_sub1, V3_sub2, V3_sub3, V3_sub4};
+    char mc[64];
+    char subi = (seed[0] + seed[3]) % 5u;
+    printf("subfunc: %d\n", subi);
+    funcmap[subi](seed, mc);
+    hex_to_str((BYTE*)mc, final_str, 64, 1);
 }
 
 DWORD getVer(const char *file) {

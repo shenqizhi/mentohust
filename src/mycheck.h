@@ -214,6 +214,7 @@ DWORD ltobl(DWORD x);
 int decodeConfig(const char *file, BYTE *dbuf, int dsize);
 int check_init(const char *dataFile);
 void V2_check(const BYTE *seed, char *final_str);
+void V3_check(const char *seed, char *final_str);
 void check_free();
 DWORD getVer(const char *file);
 

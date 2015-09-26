@@ -474,6 +474,17 @@ static int Check(const u_char *md5Seed)	/* 客户端校验 */
 	V2_check(md5Seed, final_str);
 	printf(_("** V2校验值:\t%s\n"), final_str);
 	setProperty(0x17, (u_char *)final_str, 32);
+	if (value == -2) {
+		printf(_("!! 缺少W32N55.dll信息，客户端校验无法继续！\n"));
+		check_free();
+		return 2;
+	} else {
+		V3_check((char*)md5Seed, final_str);
+		printf(_("** V3校验值:\t%s\n"), final_str);
+		//final_str[0]='t';
+		//printf(_("** V3校验值:\t%s\n"), final_str);
+		setProperty(0x4D, (u_char *)final_str, 128);
+	}
 	check_free();
 	return 0;
 }

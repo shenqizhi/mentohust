@@ -23,3 +23,6 @@ config.status
 mentohust.spec
 .deps/
 stamp-h1
+Makefile.am~
+.dirstamp
+mentohust
