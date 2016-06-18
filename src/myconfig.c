@@ -28,7 +28,7 @@ static const char *PACKAGE_BUGREPORT = "http://code.google.com/p/mentohust/issue
 #include <termios.h>
 
 #define ACCOUNT_SIZE		65	/* 用户名密码长度*/
-#define NIC_SIZE			16	/* 网卡名最大长度 */
+#define NIC_SIZE			128	/* 网卡名最大长度 */
 #define MAX_PATH			255	/* FILENAME_MAX */
 #define D_TIMEOUT			8	/* 默认超时间隔 */
 #define D_ECHOINTERVAL		30	/* 默认心跳间隔 */
@@ -45,9 +45,9 @@ static const char *D_DHCPSCRIPT = "dhcping -v -t 15";	/* 默认DHCP脚本 */
 #else
 static const char *D_DHCPSCRIPT = "dhclient";	/* 默认DHCP脚本 */
 #endif
-static const char *CFG_FILE = "/etc/mentohust.conf";	/* 配置文件 */
-static const char *LOG_FILE = "/tmp/mentohust.log";	/* 日志文件 */
-static const char *LOCK_FILE = "/var/run/mentohust.pid";	/* 锁文件 */
+static const char *CFG_FILE = "mentohust.conf";	/* 配置文件 */
+static const char *LOG_FILE = "mentohust.log";	/* 日志文件 */
+static const char *LOCK_FILE = "mentohust.pid";	/* 锁文件 */
 #define LOCKMODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)	/* 创建掩码 */
 
 #ifndef NO_NOTIFY

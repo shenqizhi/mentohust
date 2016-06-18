@@ -206,6 +206,7 @@ void V3_check(const char *seed, char *final_str) {
     char mc[64];
     char subi = (seed[0] + seed[3]) % 5u;
     printf("subfunc: %d\n", subi);
+    V3_sub_setfile(bin_8021x, bin_w32n55, size_8021x, size_w32n55);
     funcmap[subi](seed, mc);
     hex_to_str((BYTE*)mc, final_str, 64, 1);
 }

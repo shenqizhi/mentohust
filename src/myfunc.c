@@ -180,10 +180,20 @@ void newBuffer()
 
 static int getAddress()
 {
-	struct ifreq ifr;
+	int i;
+	char prefix[13];
+	char* tnic;
+	for (i=0; i<12; i++)
+		prefix[i] = nic[i];
+	prefix[12]=0;
+	if (strcmp(prefix, "\\Device\\NPF_") == 0) {
+		tnic = &nic[12];
+	}
+
+		struct ifreq ifr;
 #ifndef SIOCGIFHWADDR	/* BSD、MacOS */
 	struct ifaddrs *ifap, *p = NULL;
-	struct sockaddr_dl *sdl;
+	struct sockaddr *sdl;
 #endif
 	int sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0)
@@ -191,7 +201,7 @@ static int getAddress()
 		printf(_("!! 创建套接字失败!\n"));
 		return -1;
 	}
-	strcpy(ifr.ifr_name, nic);
+	strcpy(ifr.ifr_name, tnic);
 
 #ifdef SIOCGIFHWADDR
 	if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0)
@@ -202,10 +212,15 @@ static int getAddress()
 	{
 		for (p=ifap; p; p=p->ifa_next)
 		{
-			if (p->ifa_name && strcmp(p->ifa_name, nic)==0)
+			puts(p->ifa_name);
+			if (p->ifa_name && strcmp(p->ifa_name, tnic)==0)
 			{
-				sdl = (struct sockaddr_dl *)p->ifa_addr;
-				memcpy(localMAC, sdl->sdl_data + sdl->sdl_nlen, 6);
+				sdl = p->ifa_addr;
+				for (i=0; i<24; i++)
+				{
+					printf("%02d ", sdl->sa_data[i]);
+				}
+				memcpy(localMAC, sdl->sa_data, 6);
 				break;
 			}
 		}
@@ -214,7 +229,7 @@ static int getAddress()
 	if (p == NULL)
 		goto getMACError;
 #endif
-
+	
 	if (startMode == 0)
 		memcpy(destMAC, STANDARD_ADDR, 6);
 	else if (startMode == 1)
@@ -223,7 +238,7 @@ static int getAddress()
 #ifndef NO_ARP
 	gateMAC[0] = 0xFE;
 	if (ioctl(sock, SIOCGIFADDR, &ifr) < 0)
-		printf(_("!! 在网卡%s上获取IP失败!\n"), nic);
+		printf(_("!! 在网卡%s上获取IP失败!\n"), tnic);
 	else {
 		rip = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
 		if (gateway!=0 && (startMode%3!=2 || ((u_char *)&gateway)[3]!=0x02))
@@ -234,7 +249,7 @@ static int getAddress()
 #else
 	if (dhcpMode!=0 || ip==-1) {
 		if (ioctl(sock, SIOCGIFADDR, &ifr) < 0)
-			printf(_("!! 在网卡%s上获取IP失败!\n"), nic);
+			printf(_("!! 在网卡%s上获取IP失败!\n"), tnic);
 		else
 			ip = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
 	}
@@ -242,7 +257,7 @@ static int getAddress()
 
 	if (dhcpMode!=0 || mask==-1) {
 		if (ioctl(sock, SIOCGIFNETMASK, &ifr) < 0)
-			printf(_("!! 在网卡%s上获取子网掩码失败!\n"), nic);
+			printf(_("!! 在网卡%s上获取子网掩码失败!\n"), tnic);
 		else
 			mask = ((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr.s_addr;
 	}
@@ -255,7 +270,7 @@ static int getAddress()
 
 getMACError:
 	close(sock);
-	printf(_("!! 在网卡%s上获取MAC失败!\n"), nic);
+	printf(_("!! 在网卡%s上获取MAC失败!\n"), tnic);
 	return -1;
 }
 
